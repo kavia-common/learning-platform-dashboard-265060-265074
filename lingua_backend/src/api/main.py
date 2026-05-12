@@ -1,4 +1,5 @@
 from datetime import date
+import os
 from typing import Optional
 from uuid import UUID
 
@@ -47,10 +48,22 @@ app = FastAPI(
     openapi_tags=openapi_tags,
 )
 
-# NOTE: For MVP/demo we allow all origins. In production, restrict to frontend origin.
+# CORS:
+# - For MVP/dev, default is permissive ("*") to make local + preview deployments easy.
+# - For production, set CORS_ALLOW_ORIGINS to a comma-separated list of allowed frontend origins.
+#
+# Example:
+#   CORS_ALLOW_ORIGINS=http://localhost:3000,https://your-frontend.example.com
+cors_allow_origins_env = os.getenv("CORS_ALLOW_ORIGINS", "").strip()
+allow_origins = (
+    [o.strip() for o in cors_allow_origins_env.split(",") if o.strip()]
+    if cors_allow_origins_env
+    else ["*"]
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
